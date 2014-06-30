@@ -19,6 +19,53 @@ IMPLEMENT_MODULE(FHydraPlugin, HydraPlugin)
 //Private API - This is where the magic happens
 
 //DLL import definition
+
+typedef PSMove* (*psmove_connect)(void);
+typedef PSMove* (*psmove_connect_by_id)(int);
+typedef void (*psmove_disconnect)(PSMove*);
+typedef int (*psmove_count_connected)(void);
+typedef int (*psmove_pair)(PSMove*);
+typedef PSMoveConnectionType (*psmove_connection_type)(PSMove*);
+typedef int (*psmove_has_calibration)(PSMove*);
+typedef void (*psmove_set_leds)(PSMove*, char, char, char);
+typedef int (*psmove_update_leds)(PSMove*);
+typedef void (*psmove_set_rumble)(PSMove*,char);
+typedef uint (*psmove_poll)(PSMove*);
+typedef uint (*psmove_get_buttons)(PSMove*);
+typedef uint (*psmove_get_button_events)(PSMove*,uint*,uint*);
+typedef char (*psmove_get_trigger)(PSMove*);
+typedef float (*psmove_get_temperature)(PSMove*);
+typedef PSMove_Battery_Level (*psmove_get_battery)(PSMove*);
+typedef void (*psmove_get_accelerometer)(PSMove*,int*,int*,int*);
+typedef void (*psmove_get_accelerometer_frame)(PSMove*,PSMove_Frame,float*,float*,float*);
+typedef void (*psmove_get_gyroscope)(PSMove*,int*,int*,int*);
+typedef void (*psmove_get_gyroscope_frame)(PSMove*,PSMove_Frame,float*,float*,float*);
+typedef void (*psmove_get_magnetometer)(PSMove*,int*,int*,int*);
+typedef string (*psmove_get_serial)(PSMove*);
+
+psmove_connect MoveConnect;
+psmove_connect_by_id MoveConnectByID;
+psmove_disconnect MoveDisconnect;
+psmove_count_connected MoveCountConnected;
+psmove_pair MovePair;
+psmove_connection_type MoveConnectionType;
+psmove_has_calibration MoveHasCalibration;
+psmove_set_leds MoveSetLEDs;
+psmove_update_leds MoveUpdateLEDs;
+psmove_set_rumble MoveSetRumble;
+psmove_poll MovePoll;
+psmove_get_buttons MoveGetButtons;
+psmove_get_button_events MoveGetButtonEvents;
+psmove_get_trigger MoveGetTrigger;
+psmove_get_temperature MoveGetTemperature;
+psmove_get_battery MoveGetBattery;
+psmove_get_accelerometer MoveGetAccelerometer;
+psmove_get_accelerometer_frame MoveGetAccelerometerFrame;
+psmove_get_gyroscope MoveGetGyroscope;
+psmove_get_gyroscope_frame MoveGetGyroscopeFrame;
+psmove_get_magnetometer MoveGetMagnetometer;
+psmove_get_serial MoveGetSerial;
+
 typedef int (*dll_sixenseInit)(void);
 typedef int (*dll_sixenseExit)(void);
 typedef int (*dll_sixenseGetAllNewestData)(sixenseAllControllerData *);
