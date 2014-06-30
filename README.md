@@ -1,7 +1,15 @@
 Overview
 
 
-An Unofficial Razer Hydra Plugin for Unreal Engine 4.0
+An Unofficial Playstation Move Plugin for Unreal Engine 4.0
+
+
+The rest of the read me is from the Hydra plugin this is based on for now, almost everything is the same except for the amount/type of buttons, and stuff to do with docking etc.
+
+Make sure to pair your device before using the plugin. See the PSMoveAPI for the pairing program (TODO: link).
+
+------
+
 
 The plugin is designed with an event driven architecture through a delegate interface. You can access device events through Blueprintable classes provided or through C++. Main C++ support is from inheriting the HydraDelegate, through it you can extend your own custom class to support Hydra events. Additional functions in the delegate support polling for latest data.
 
