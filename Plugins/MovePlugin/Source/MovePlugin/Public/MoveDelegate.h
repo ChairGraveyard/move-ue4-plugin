@@ -47,7 +47,7 @@ public:
 	moveAllControllerDataUE* MoveLatestData;
 
 	/** Holds last 10 controller captures, useful for gesture recognition*/
-	moveAllControllerDataUE HydraHistoryData[10];
+	moveAllControllerDataUE MoveHistoryData[10];
 
 	/** Event Emitters, override to receive notifications.
 	 *	int32 controller is the controller index (typically 0 or 1 for hydra) 

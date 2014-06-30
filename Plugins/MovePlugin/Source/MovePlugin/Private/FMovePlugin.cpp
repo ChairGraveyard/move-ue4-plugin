@@ -1,9 +1,9 @@
-#include "HydraPluginPrivatePCH.h"
+#include "MovePluginPrivatePCH.h"
 
-#include "IHydraPlugin.h"
+#include "IMovePlugin.h"
 
-#include "FHydraPlugin.h"
-#include "HydraDelegate.h"
+#include "FMovePlugin.h"
+#include "MoveDelegate.h"
 
 #include <iostream>
 #include <stdexcept>
@@ -11,9 +11,9 @@
 #include <sixense.h>
 #include <windows.h>
 
-#include "HydraPlugin.generated.inl"
+#include "MovePlugin.generated.inl"
 
-IMPLEMENT_MODULE(FHydraPlugin, HydraPlugin)
+IMPLEMENT_MODULE(FMovePlugin, MovePlugin)
 
 
 //Private API - This is where the magic happens
@@ -80,9 +80,9 @@ class DataCollector
 public:
 	DataCollector()
 	{
-		hydraDelegate = NULL;
-		allData = new sixenseAllControllerData;
-		allDataUE = new sixenseAllControllerDataUE;
+		moveDelegate = NULL;
+		//allData = new sixenseAllControllerData;
+		allDataUE = new moveControllerDataUE;
 	}
 	~DataCollector()
 	{
@@ -90,9 +90,9 @@ public:
 		delete allDataUE;
 	}
 
-	sixenseControllerDataUE ConvertData(sixenseControllerData* data)
+	moveControllerDataUE ConvertData(sixenseControllerData* data)
 	{
-		sixenseControllerDataUE converted;
+		moveControllerDataUE converted;
 
 		//Convert Sixense Axis to Unreal: UnrealX = - SixenseZ   UnrealY = SixenseX   UnrealZ = SixenseY
 		converted.position = FVector(-data->pos[2], data->pos[0], data->pos[1]);	//converted
@@ -127,28 +127,78 @@ public:
 		}
 	}
 
-	sixenseAllControllerDataUE* allDataUE;
+	moveAllControllerDataUE* allDataUE;
 	sixenseAllControllerData* allData;
-	HydraDelegate* hydraDelegate;
+	MoveDelegate* moveDelegate;
 };
 
 //Init and Runtime
-void FHydraPlugin::StartupModule()
+void FMovePlugin::StartupModule()
 {
-	UE_LOG(LogClass, Log, TEXT("Attempting to startup Hydra Module."));
+	UE_LOG(LogClass, Log, TEXT("Attempting to startup Move Module."));
 	try {
 		collector = new DataCollector;
 
 		FString DllFilename = FPaths::ConvertRelativePathToFull(FPaths::Combine(*FPaths::GameDir(),
-			TEXT("Plugins"), TEXT("HydraPlugin"), TEXT("Binaries/Win64")), TEXT("sixense_x64.dll"));
+			TEXT("Plugins"), TEXT("MovePlugin"), TEXT("Binaries/Win64")), TEXT("sixense_x64.dll")); // TODO: Fix this to point to libpsmoveapi
 
 		DLLHandle = NULL;
 		DLLHandle = FPlatformProcess::GetDllHandle(*DllFilename);
 		
 		if (!DLLHandle){
-			UE_LOG(LogClass, Error, TEXT("DLL missing, Hydra Unavailable."));
+			UE_LOG(LogClass, Error, TEXT("DLL missing, Move Unavailable."));
 			return;
 		}
+
+		// TODO: Get DLL functions.
+		psmove_connect MoveConnect;
+		psmove_connect_by_id MoveConnectByID;
+		psmove_disconnect MoveDisconnect;
+		psmove_count_connected MoveCountConnected;
+		psmove_pair MovePair;
+		psmove_connection_type MoveConnectionType;
+		psmove_has_calibration MoveHasCalibration;
+		psmove_set_leds MoveSetLEDs;
+		psmove_update_leds MoveUpdateLEDs;
+		psmove_set_rumble MoveSetRumble;
+		psmove_poll MovePoll;
+		psmove_get_buttons MoveGetButtons;
+		psmove_get_button_events MoveGetButtonEvents;
+		psmove_get_trigger MoveGetTrigger;
+		psmove_get_temperature MoveGetTemperature;
+		psmove_get_battery MoveGetBattery;
+		psmove_get_accelerometer MoveGetAccelerometer;
+		psmove_get_accelerometer_frame MoveGetAccelerometerFrame;
+		psmove_get_gyroscope MoveGetGyroscope;
+		psmove_get_gyroscope_frame MoveGetGyroscopeFrame;
+		psmove_get_magnetometer MoveGetMagnetometer;
+		psmove_get_serial MoveGetSerial;
+
+		MoveConnect = (psmove_connect)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_connect"));
+		MoveConnectByID = (psmove_connect_by_id)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_connect_by_id"));
+		MoveDisconnect = (psmove_disconnect)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_disconnect"));
+		MoveCountConnected = (psmove_count_connected)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_count_connected"));
+		MovePair = (psmove_pair)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_pair"));
+		MoveConnectionType = (psmove_connection_type)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_connection_type"));
+		MoveHasCalibration = (psmove_has_calibration)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_has_calibration"));
+		MoveSetLEDs = (psmove_set_leds)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_set_leds"));
+		MoveSetRumble = (psmove_set_rumble)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_set_rumble"));
+		MovePoll = (psmove_poll)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_poll"));
+		MoveGetButtons = (psmove_get_buttons)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_get_buttons"));
+		MoveGetButtonEvents = (psmove_get_button_events)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_get_button_events"));
+
+		MoveGetTrigger = (psmove_get_trigger)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_get_trigger"));
+		MoveGetTemperature = (psmove_get_temperature)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_get_temperature"));
+		MoveGetBattery = (psmove_get_button_events)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_get_battery"));
+		MoveGetAccelerometer = (psmove_get_accelerometer)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_get_accelerometer"));
+
+		MoveGetAccelerometerFrame = (psmove_get_accelerometer_frame)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_get_accelerometer_frame"));
+		MoveGetGyroscope = (psmove_get_gyroscope)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_get_gyroscope"));
+		MoveGetGyroscopeFrame = (psmove_get_gyroscope_frame)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_get_gyroscope_frame"));
+		MoveGetMagnetometer = (psmove_get_magnetometer)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_get_magnetometer"));
+		MoveGetSerial = (psmove_get_serial)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_get_serial"));
+
+
 
 		HydraInit = (dll_sixenseInit)FPlatformProcess::GetDllExport(DLLHandle, TEXT("sixenseInit"));
 		HydraExit = (dll_sixenseExit)FPlatformProcess::GetDllExport(DLLHandle, TEXT("sixenseExit"));
@@ -159,11 +209,11 @@ void FHydraPlugin::StartupModule()
 
 		if (collector->allDataUE->available)
 		{
-			UE_LOG(LogClass, Log, TEXT("Hydra Available."));
+			UE_LOG(LogClass, Log, TEXT("Move Available."));
 		}
 		else
 		{
-			UE_LOG(LogClass, Log, TEXT("Hydra Unavailable."));
+			UE_LOG(LogClass, Log, TEXT("Move Unavailable."));
 		}
 	}
 	catch (const std::exception& e) {
@@ -171,7 +221,7 @@ void FHydraPlugin::StartupModule()
 	}
 }
 
-void FHydraPlugin::ShutdownModule()
+void FMovePlugin::ShutdownModule()
 {
 	int cleanshutdown = HydraExit();
 
@@ -179,7 +229,7 @@ void FHydraPlugin::ShutdownModule()
 
 	if (cleanshutdown == SIXENSE_SUCCESS)
 	{
-		UE_LOG(LogClass, Log, TEXT("Hydra Clean shutdown."));
+		UE_LOG(LogClass, Log, TEXT("Move Clean shutdown."));
 	}
 
 	delete collector;
@@ -190,18 +240,18 @@ void FHydraPlugin::ShutdownModule()
 
 /** Public API - Required **/
 
-void FHydraPlugin::SetDelegate(HydraDelegate* newDelegate)
+void FMovePlugin::SetDelegate(MoveDelegate* newDelegate)
 {
-	collector->hydraDelegate = newDelegate;
-	collector->hydraDelegate->HydraLatestData = collector->allDataUE;	//set the delegate latest pointer
+	collector->moveDelegate = newDelegate;
+	collector->moveDelegate->MoveLatestData = collector->allDataUE;	//set the delegate latest pointer
 }
 
-void FHydraPlugin::HydraTick(float DeltaTime)
+void FMovePlugin::MoveTick(float DeltaTime)
 {
 	//get the freshest data
-	int success = HydraGetAllNewestData(collector->allData);
+	int success = MoveGetAllNewestData(collector->allData);
 	if (success == SIXENSE_FAILURE){
-		UE_LOG(LogClass, Error, TEXT("Hydra Error! Failed to get freshest data."));
+		UE_LOG(LogClass, Error, TEXT("Move Error! Failed to get freshest data."));
 		return;
 	}
 	//if the hydras are unavailable don't try to get more information
@@ -214,9 +264,9 @@ void FHydraPlugin::HydraTick(float DeltaTime)
 	collector->ConvertAllData();
 
 	//update our delegate pointer to point to the freshest data (may be redundant but has to be called once)
-	if (collector->hydraDelegate != NULL)
+	if (collector->moveDelegate != NULL)
 	{
-		collector->hydraDelegate->HydraLatestData = collector->allDataUE;	//ensure the delegate.latest is always pointing to our converted data
-		collector->hydraDelegate->InternalHydraControllerTick(DeltaTime);
+		collector->moveDelegate->MoveLatestData = collector->allDataUE;	//ensure the delegate.latest is always pointing to our converted data
+		collector->moveDelegate->InternalMoveControllerTick(DeltaTime);
 	}
 }
