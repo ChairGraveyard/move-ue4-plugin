@@ -8,7 +8,10 @@
 #include <iostream>
 #include <stdexcept>
 #include <vector>
-#include <sixense.h>
+
+// TODO: Include PSMoveAPI here!
+//#include <sixense.h>
+
 #include <windows.h>
 
 #include "MovePlugin.generated.inl"
@@ -20,6 +23,7 @@ IMPLEMENT_MODULE(FMovePlugin, MovePlugin)
 
 //DLL import definition
 
+typedef bool (*psmove_init)(enum PSMove_Version);
 typedef PSMove* (*psmove_connect)(void);
 typedef PSMove* (*psmove_connect_by_id)(int);
 typedef void (*psmove_disconnect)(PSMove*);
@@ -43,6 +47,7 @@ typedef void (*psmove_get_gyroscope_frame)(PSMove*,PSMove_Frame,float*,float*,fl
 typedef void (*psmove_get_magnetometer)(PSMove*,int*,int*,int*);
 typedef string (*psmove_get_serial)(PSMove*);
 
+psmove_init MoveInit;
 psmove_connect MoveConnect;
 psmove_connect_by_id MoveConnectByID;
 psmove_disconnect MoveDisconnect;
@@ -82,7 +87,7 @@ public:
 	{
 		moveDelegate = NULL;
 		//allData = new sixenseAllControllerData;
-		allDataUE = new moveControllerDataUE;
+		allDataUE = new moveAllControllerDataUE;
 	}
 	~DataCollector()
 	{
@@ -95,6 +100,7 @@ public:
 		moveControllerDataUE converted;
 
 		//Convert Sixense Axis to Unreal: UnrealX = - SixenseZ   UnrealY = SixenseX   UnrealZ = SixenseY
+		// TODO: Figure out coordinate space for PS Move
 		converted.position = FVector(-data->pos[2], data->pos[0], data->pos[1]);	//converted
 		converted.rotation = FQuat(data->rot_quat[2], -data->rot_quat[0], -data->rot_quat[1], data->rot_quat[3]);	//converted & rotation values inverted
 		converted.joystick = FVector2D(data->joystick_x, data->joystick_y);
@@ -151,29 +157,7 @@ void FMovePlugin::StartupModule()
 		}
 
 		// TODO: Get DLL functions.
-		psmove_connect MoveConnect;
-		psmove_connect_by_id MoveConnectByID;
-		psmove_disconnect MoveDisconnect;
-		psmove_count_connected MoveCountConnected;
-		psmove_pair MovePair;
-		psmove_connection_type MoveConnectionType;
-		psmove_has_calibration MoveHasCalibration;
-		psmove_set_leds MoveSetLEDs;
-		psmove_update_leds MoveUpdateLEDs;
-		psmove_set_rumble MoveSetRumble;
-		psmove_poll MovePoll;
-		psmove_get_buttons MoveGetButtons;
-		psmove_get_button_events MoveGetButtonEvents;
-		psmove_get_trigger MoveGetTrigger;
-		psmove_get_temperature MoveGetTemperature;
-		psmove_get_battery MoveGetBattery;
-		psmove_get_accelerometer MoveGetAccelerometer;
-		psmove_get_accelerometer_frame MoveGetAccelerometerFrame;
-		psmove_get_gyroscope MoveGetGyroscope;
-		psmove_get_gyroscope_frame MoveGetGyroscopeFrame;
-		psmove_get_magnetometer MoveGetMagnetometer;
-		psmove_get_serial MoveGetSerial;
-
+		MoveInit = (psmove_init)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_init"));
 		MoveConnect = (psmove_connect)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_connect"));
 		MoveConnectByID = (psmove_connect_by_id)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_connect_by_id"));
 		MoveDisconnect = (psmove_disconnect)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_disconnect"));
@@ -205,7 +189,8 @@ void FMovePlugin::StartupModule()
 		HydraGetAllNewestData = (dll_sixenseGetAllNewestData)FPlatformProcess::GetDllExport(DLLHandle, TEXT("sixenseGetAllNewestData"));
 
 
-		collector->allDataUE->available = (HydraInit() == SIXENSE_SUCCESS);
+		// TODO: Set this up to store the PSMove* correctly after calling MoveConnect.
+		collector->allDataUE->available = (MoveInit() == true);
 
 		if (collector->allDataUE->available)
 		{
@@ -223,11 +208,12 @@ void FMovePlugin::StartupModule()
 
 void FMovePlugin::ShutdownModule()
 {
-	int cleanshutdown = HydraExit();
+	MoveDisconnect();
 
 	FPlatformProcess::FreeDllHandle(DLLHandle);
 
-	if (cleanshutdown == SIXENSE_SUCCESS)
+	// TODO: Actually check this.
+	//if (cleanshutdown == SIXENSE_SUCCESS)
 	{
 		UE_LOG(LogClass, Log, TEXT("Move Clean shutdown."));
 	}

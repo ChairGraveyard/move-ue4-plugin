@@ -54,7 +54,7 @@ void MoveDelegate::InternalMoveCheckEnabledCount(bool* plugNotChecked)
 {
 	if (!*plugNotChecked) return;
 
-	sixenseAllControllerDataUE* previous = &MoveHistoryData[0];
+	moveAllControllerDataUE* previous = &MoveHistoryData[0];
 	int32 oldCount = previous->enabledCount;
 	int32 count = MoveLatestData->enabledCount;
 	if (oldCount != count)
@@ -78,8 +78,8 @@ void MoveDelegate::InternalMoveControllerTick(float DeltaTime)
 	//Update Data History
 	InternalMoveUpdateAllData();
 
-	sixenseControllerDataUE* controller;
-	sixenseControllerDataUE* previous;
+	moveControllerDataUE* controller;
+	moveControllerDataUE* previous;
 	bool plugNotChecked = true;
 
 	//Trigger any delegate events
