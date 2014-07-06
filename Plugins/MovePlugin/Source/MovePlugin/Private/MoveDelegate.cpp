@@ -23,17 +23,8 @@ void MoveDelegate::EventMoveB4Released(int32 controller){}
 void MoveDelegate::EventMoveTriggerPressed(int32 controller){}
 void MoveDelegate::EventMoveTriggerReleased(int32 controller){}
 void MoveDelegate::EventMoveTriggerChanged(int32 controller, float value){}
-void MoveDelegate::EventMoveBumperPressed(int32 controller){}
-void MoveDelegate::EventMoveBumperReleased(int32 controller){}
-void MoveDelegate::EventMoveJoystickPressed(int32 controller){}
-void MoveDelegate::EventMoveJoystickReleased(int32 controller){}
 void MoveDelegate::EventMoveStartPressed(int32 controller){}
 void MoveDelegate::EventMoveStartReleased(int32 controller){}
-
-void MoveDelegate::EventMoveJoystickMoved(int32 controller, FVector2D movement){};
-void MoveDelegate::EventMoveControllerMoved(int32 controller,
-	FVector position, FVector velocity, FVector acceleration,
-	FRotator rotation){};
 
 /** Move Internal Functions, called by plugin.*/
 void MoveDelegate::InternalMoveUpdateAllData()
@@ -112,50 +103,10 @@ void MoveDelegate::InternalMoveControllerTick(float DeltaTime)
 
 			//** Buttons */
 
-			//Trigger
-			if (controller->trigger < 0.5)
-			{
-				controller->trigger_pressed = false;
-			}
-			else{
-				controller->trigger_pressed = true;
-			}
-
-			if (controller->trigger != previous->trigger)
-			{
-				EventMoveTriggerChanged(i, controller->trigger);
-
-				if (controller->trigger_pressed != previous->trigger_pressed)
-				{
-				
-					if (controller->trigger_pressed)
-					{
-						EventMoveAnyButtonPressed(i);
-						EventMoveTriggerPressed(i);
-					}
-					else{
-						EventMoveTriggerReleased(i);
-					}
-				}
-			}
-
-			//Bumper
-			if ((controller->buttons & SIXENSE_BUTTON_BUMPER) != (previous->buttons & SIXENSE_BUTTON_BUMPER))
-			{
-				if ((controller->buttons & SIXENSE_BUTTON_BUMPER) == SIXENSE_BUTTON_BUMPER)
-				{
-					EventMoveAnyButtonPressed(i);
-					EventMoveBumperPressed(i);
-				}
-				else{
-					EventMoveBumperReleased(i);
-				}
-			}
-
 			//B1
-			if ((controller->buttons & SIXENSE_BUTTON_1) != (previous->buttons & SIXENSE_BUTTON_1))
+			if ((controller->buttons & Btn_TRIANGLE) != (previous->buttons & Btn_TRIANGLE))
 			{
-				if ((controller->buttons & SIXENSE_BUTTON_1) == SIXENSE_BUTTON_1)
+				if ((controller->buttons & Btn_TRIANGLE) == Btn_TRIANGLE)
 				{
 					EventMoveAnyButtonPressed(i);
 					EventMoveB1Pressed(i);
@@ -165,9 +116,9 @@ void MoveDelegate::InternalMoveControllerTick(float DeltaTime)
 				}
 			}
 			//B2
-			if ((controller->buttons & SIXENSE_BUTTON_2) != (previous->buttons & SIXENSE_BUTTON_2))
+			if ((controller->buttons & Btn_CIRCLE) != (previous->buttons & Btn_CIRCLE))
 			{
-				if ((controller->buttons & SIXENSE_BUTTON_2) == SIXENSE_BUTTON_2)
+				if ((controller->buttons & Btn_CIRCLE) == Btn_CIRCLE)
 				{
 					EventMoveAnyButtonPressed(i);
 					EventMoveB2Pressed(i);
@@ -177,9 +128,9 @@ void MoveDelegate::InternalMoveControllerTick(float DeltaTime)
 				}
 			}
 			//B3
-			if ((controller->buttons & SIXENSE_BUTTON_3) != (previous->buttons & SIXENSE_BUTTON_3))
+			if ((controller->buttons & Btn_CROSS) != (previous->buttons & Btn_CROSS))
 			{
-				if ((controller->buttons & SIXENSE_BUTTON_3) == SIXENSE_BUTTON_3)
+				if ((controller->buttons & Btn_CROSS) == Btn_CROSS)
 				{
 					EventMoveAnyButtonPressed(i);
 					EventMoveB3Pressed(i);
@@ -189,9 +140,9 @@ void MoveDelegate::InternalMoveControllerTick(float DeltaTime)
 				}
 			}
 			//B4
-			if ((controller->buttons & SIXENSE_BUTTON_4) != (previous->buttons & SIXENSE_BUTTON_4))
+			if ((controller->buttons & Btn_SQUARE) != (previous->buttons & Btn_SQUARE))
 			{
-				if ((controller->buttons & SIXENSE_BUTTON_4) == SIXENSE_BUTTON_4)
+				if ((controller->buttons & Btn_SQUARE) == Btn_SQUARE)
 				{
 					EventMoveAnyButtonPressed(i);
 					EventMoveB4Pressed(i);
@@ -202,9 +153,9 @@ void MoveDelegate::InternalMoveControllerTick(float DeltaTime)
 			}
 
 			//Start
-			if ((controller->buttons & SIXENSE_BUTTON_START) != (previous->buttons & SIXENSE_BUTTON_START))
+			if ((controller->buttons & Btn_START) != (previous->buttons & Btn_START))
 			{
-				if ((controller->buttons & SIXENSE_BUTTON_START) == SIXENSE_BUTTON_START)
+				if ((controller->buttons & Btn_START) == Btn_START)
 				{
 					EventMoveAnyButtonPressed(i);
 					EventMoveStartPressed(i);
@@ -214,28 +165,7 @@ void MoveDelegate::InternalMoveControllerTick(float DeltaTime)
 				}
 			}
 
-			//Joystick Click
-			if ((controller->buttons & SIXENSE_BUTTON_JOYSTICK) != (previous->buttons & SIXENSE_BUTTON_JOYSTICK))
-			{
-				if ((controller->buttons & SIXENSE_BUTTON_JOYSTICK) == SIXENSE_BUTTON_JOYSTICK)
-				{
-					EventMoveAnyButtonPressed(i);
-					EventMoveJoystickPressed(i);
-				}
-				else{
-					EventMoveJoystickReleased(i);
-				}
-			}
-
 			/** Movement */
-
-			//Joystick
-			if (controller->joystick.X != previous->joystick.X ||
-				controller->joystick.Y != previous->joystick.Y)
-			{
-				EventMoveJoystickMoved(i, controller->joystick);
-			}
-
 			//Controller
 
 			//Calculate Velocity and Acceleration
@@ -268,10 +198,4 @@ bool MoveDelegate::MoveIsAvailable()
 {
 	//Move will always have an enabled count of 2 when plugged in and working, stem functionality undefined.
 	return MoveLatestData->enabledCount == 2;
-}
-
-/** Call to determine which hand you're holding the controller in. Determine by last docking position.*/
-int32 MoveDelegate::MoveWhichHand(int32 controller)
-{
-	return MoveLatestData->controllers[controller].which_hand;
 }

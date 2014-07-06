@@ -88,22 +88,6 @@ void AMovePluginActor::EventMoveTriggerChanged(int32 controller, float value)
 {
 	MoveTriggerChanged(controller, value);
 }
-void AMovePluginActor::EventMoveBumperPressed(int32 controller)
-{
-	MoveBumperPressed(controller);
-}
-void AMovePluginActor::EventMoveBumperReleased(int32 controller)
-{
-	MoveBumperReleased(controller);
-}
-void AMovePluginActor::EventMoveJoystickPressed(int32 controller)
-{
-	MoveJoystickPressed(controller);
-}
-void AMovePluginActor::EventMoveJoystickReleased(int32 controller)
-{
-	MoveJoystickReleased(controller);
-}
 void AMovePluginActor::EventMoveStartPressed(int32 controller)
 {
 	MoveStartPressed(controller);
@@ -113,10 +97,6 @@ void AMovePluginActor::EventMoveStartReleased(int32 controller)
 	MoveStartReleased(controller);
 }
 
-void AMovePluginActor::EventMoveJoystickMoved(int32 controller, FVector2D movement)
-{
-	MoveJoystickMoved(controller, movement);
-}
 void AMovePluginActor::EventMoveControllerMoved(int32 controller,
 	FVector position, FVector velocity, FVector acceleration,
 	FRotator rotation)
@@ -127,10 +107,6 @@ void AMovePluginActor::EventMoveControllerMoved(int32 controller,
 bool AMovePluginActor::MoveIsAvailable()
 {
 	return MoveDelegate::MoveIsAvailable();
-}
-int32 AMovePluginActor::MoveWhichHand(int32 controller)
-{
-	return MoveDelegate::MoveWhichHand(controller);
 }
 
 /** Poll for latest data.*/

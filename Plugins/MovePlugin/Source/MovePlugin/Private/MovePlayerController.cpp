@@ -86,22 +86,6 @@ void AMovePlayerController::EventMoveTriggerChanged(int32 controller, float valu
 {
 	MoveTriggerChanged(controller, value);
 }
-void AMovePlayerController::EventMoveBumperPressed(int32 controller)
-{
-	MoveBumperPressed(controller);
-}
-void AMovePlayerController::EventMoveBumperReleased(int32 controller)
-{
-	MoveBumperReleased(controller);
-}
-void AMovePlayerController::EventMoveJoystickPressed(int32 controller)
-{
-	MoveJoystickPressed(controller);
-}
-void AMovePlayerController::EventMoveJoystickReleased(int32 controller)
-{
-	MoveJoystickReleased(controller);
-}
 void AMovePlayerController::EventMoveStartPressed(int32 controller)
 {
 	MoveStartPressed(controller);
@@ -111,10 +95,6 @@ void AMovePlayerController::EventMoveStartReleased(int32 controller)
 	MoveStartReleased(controller);
 }
 
-void AMovePlayerController::EventMoveJoystickMoved(int32 controller, FVector2D movement)
-{
-	MoveJoystickMoved(controller, movement);
-}
 void AMovePlayerController::EventMoveControllerMoved(int32 controller,
 	FVector position, FVector velocity, FVector acceleration,
 	FRotator rotation)
@@ -125,10 +105,6 @@ void AMovePlayerController::EventMoveControllerMoved(int32 controller,
 bool AMovePlayerController::MoveIsAvailable()
 {
 	return MoveDelegate::MoveIsAvailable();
-}
-int32 AMovePlayerController::MoveWhichHand(int32 controller)
-{
-	return MoveDelegate::MoveWhichHand(controller);
 }
 
 /** Poll for latest data.*/
@@ -147,7 +123,7 @@ bool AMovePlayerController::MoveGetHistoricalData(int32 controller, int32 histor
 	if (historyIndex<0 || historyIndex>9){ return false; }
 	if (controller > 4 || controller < 0){ return false; }
 
-	sixenseControllerDataUE* data = &MoveHistoryData[historyIndex].controllers[controller];
+	moveControllerDataUE* data = &MoveHistoryData[historyIndex].controllers[controller];
 
 	position = data->position;
 	velocity = data->velocity;

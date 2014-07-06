@@ -7,27 +7,21 @@
  * sixense controller data.
  */
 typedef struct _moveControllerDataUE{
+
+	PSMove *move;
+
 	//raw converted
 	FVector position;	//in hydra units (cm)
 	FQuat rotation;		//raw, may need conversion
-	FVector2D joystick;
 	float trigger;
 	uint32 buttons;
-	uint8 sequence_number;
-	uint16 firmware_revision;
-	uint16 hardware_revision;
-	uint16 packet_type;
-	uint16 magnetic_frequency;
 	bool enabled;
 	int32 controller_index;
 	bool is_docked;
-	uint8 which_hand;
-	bool hemi_tracking_enabled;
 
 	//added values
 	FVector velocity;
 	FVector acceleration;
-	bool trigger_pressed;
 } moveControllerDataUE;
 
 typedef struct _moveAllControllerDataUE{
@@ -73,15 +67,9 @@ public:
 	virtual void EventMoveTriggerPressed(int32 controller);
 	virtual void EventMoveTriggerReleased(int32 controller);
 	virtual void EventMoveTriggerChanged(int32 controller, float value);	//Range 0-1.0
-	virtual void EventMoveBumperPressed(int32 controller);
-	virtual void EventMoveBumperReleased(int32 controller);
-	virtual void EventMoveJoystickPressed(int32 controller);
-	virtual void EventMoveJoystickReleased(int32 controller);
 	virtual void EventMoveStartPressed(int32 controller);
 	virtual void EventMoveStartReleased(int32 controller);
 
-	virtual void EventMoveJoystickMoved(int32 controller, FVector2D movement);	//Range 0-1.0, 0-1.0
-	
 	/*	Movement in move units (should it be converted?)
 	*	triggered whenever a controller is not docked. */
 	virtual void EventMoveControllerMoved(int32 controller,						

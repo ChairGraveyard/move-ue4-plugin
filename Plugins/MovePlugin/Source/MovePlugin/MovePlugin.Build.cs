@@ -68,8 +68,8 @@ namespace UnrealBuildTool.Rules
             {
                 isLibrarySupported = true;
 
-               // string PlatformString = (Target.Platform == UnrealTargetPlatform.Win64) ? "x64" : "x32";
-               // string LibrariesPath = Path.Combine(ThirdPartyPath, "Sixense", "Lib");
+               //string PlatformString = (Target.Platform == UnrealTargetPlatform.Win64) ? "x64" : "x32";
+               //string LibrariesPath = Path.Combine(ThirdPartyPath, "PSMoveAPI", "Lib");
 
                 //PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "sixense_s_" + PlatformString + ".lib"));
             }
@@ -77,7 +77,7 @@ namespace UnrealBuildTool.Rules
             if (isLibrarySupported)
             {
                 // Include path
-                // PublicIncludePaths.Add(Path.Combine(ThirdPartyPath, "Sixense", "Include"));
+                PublicIncludePaths.Add(Path.Combine(ThirdPartyPath, "PSMoveAPI", "Include"));
             }
 
             //Definitions.Add(string.Format("WITH_HYDRA_BINDING={0}", isLibrarySupported ? 1 : 0));

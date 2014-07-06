@@ -11,6 +11,8 @@
 
 // TODO: Include PSMoveAPI here!
 //#include <sixense.h>
+#include <psmove_config.h>
+#include <psmove_fusion.h>
 
 #include <windows.h>
 
@@ -23,7 +25,7 @@ IMPLEMENT_MODULE(FMovePlugin, MovePlugin)
 
 //DLL import definition
 
-typedef bool (*psmove_init)(enum PSMove_Version);
+typedef bool (*psmove_init)(int);
 typedef PSMove* (*psmove_connect)(void);
 typedef PSMove* (*psmove_connect_by_id)(int);
 typedef void (*psmove_disconnect)(PSMove*);
@@ -70,15 +72,6 @@ psmove_get_gyroscope MoveGetGyroscope;
 psmove_get_gyroscope_frame MoveGetGyroscopeFrame;
 psmove_get_magnetometer MoveGetMagnetometer;
 psmove_get_serial MoveGetSerial;
-
-typedef int (*dll_sixenseInit)(void);
-typedef int (*dll_sixenseExit)(void);
-typedef int (*dll_sixenseGetAllNewestData)(sixenseAllControllerData *);
-
-dll_sixenseInit HydraInit;
-dll_sixenseExit HydraExit;
-dll_sixenseGetAllNewestData HydraGetAllNewestData;
-
 
 class DataCollector
 {
@@ -146,7 +139,7 @@ void FMovePlugin::StartupModule()
 		collector = new DataCollector;
 
 		FString DllFilename = FPaths::ConvertRelativePathToFull(FPaths::Combine(*FPaths::GameDir(),
-			TEXT("Plugins"), TEXT("MovePlugin"), TEXT("Binaries/Win64")), TEXT("sixense_x64.dll")); // TODO: Fix this to point to libpsmoveapi
+			TEXT("Plugins"), TEXT("MovePlugin"), TEXT("Binaries/Win64")), TEXT("libpsmoveapi.dll")); // TODO: Fix this to point to libpsmoveapi
 
 		DLLHandle = NULL;
 		DLLHandle = FPlatformProcess::GetDllHandle(*DllFilename);
@@ -182,15 +175,8 @@ void FMovePlugin::StartupModule()
 		MoveGetMagnetometer = (psmove_get_magnetometer)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_get_magnetometer"));
 		MoveGetSerial = (psmove_get_serial)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_get_serial"));
 
-
-
-		HydraInit = (dll_sixenseInit)FPlatformProcess::GetDllExport(DLLHandle, TEXT("sixenseInit"));
-		HydraExit = (dll_sixenseExit)FPlatformProcess::GetDllExport(DLLHandle, TEXT("sixenseExit"));
-		HydraGetAllNewestData = (dll_sixenseGetAllNewestData)FPlatformProcess::GetDllExport(DLLHandle, TEXT("sixenseGetAllNewestData"));
-
-
 		// TODO: Set this up to store the PSMove* correctly after calling MoveConnect.
-		collector->allDataUE->available = (MoveInit() == true);
+		collector->allDataUE->available = ((bool)MoveInit(0x030001) == true);
 
 		if (collector->allDataUE->available)
 		{
@@ -221,6 +207,38 @@ void FMovePlugin::ShutdownModule()
 	delete collector;
 }
 
+bool MoveGetAllNewestData(moveAllControllerDataUE* allDataUE)
+{
+	if (!allDataUE->available)
+		return false;
+
+	for (int i = 0; i < 4; i++)
+	{
+		moveControllerDataUE* controller = &allDataUE->controllers[i];
+
+		// Check for PSMove pointer.
+		if (!controller->move)
+		{
+			// Attempt to connect.
+			controller->move = MoveConnectByID(0);
+		}
+
+		// Bail if still not valid.
+		if (!controller->move)
+		{
+			controller->enabled = false;
+			continue;
+		}
+		bool ret = MovePoll(controller->move);
+		if (!ret)
+			continue;
+
+		controller->enabled = true;
+
+		MoveGetAccelerometer(controller->move, &controller->acceleration.x, &controller->acceleration.y, &controller->acceleration.z);
+		MoveGetButtons(controller->move, &controller->buttons);
+	}
+}
 
 //Public API Implementation
 
@@ -235,11 +253,12 @@ void FMovePlugin::SetDelegate(MoveDelegate* newDelegate)
 void FMovePlugin::MoveTick(float DeltaTime)
 {
 	//get the freshest data
-	int success = MoveGetAllNewestData(collector->allData);
-	if (success == SIXENSE_FAILURE){
+	int success = MoveGetAllNewestData(collector->allDataUE);
+	if (success == false){
 		UE_LOG(LogClass, Error, TEXT("Move Error! Failed to get freshest data."));
 		return;
 	}
+
 	//if the hydras are unavailable don't try to get more information
 	if (!collector->allDataUE->available){
 		UE_LOG(LogClass, Log, TEXT("Collector data not available."));
@@ -247,7 +266,7 @@ void FMovePlugin::MoveTick(float DeltaTime)
 	}
 
 	//convert and pass the data to the delegate
-	collector->ConvertAllData();
+	//collector->ConvertAllData();
 
 	//update our delegate pointer to point to the freshest data (may be redundant but has to be called once)
 	if (collector->moveDelegate != NULL)
