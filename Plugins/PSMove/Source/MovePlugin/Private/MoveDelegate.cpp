@@ -30,6 +30,9 @@ void MoveDelegate::EventMoveControllerMoved(int32 controller,
 	FVector position, FVector velocity, FVector acceleration,
 	FRotator rotation){};
 
+void MoveDelegate::SetLEDs(uint8 r, uint8 g, uint8 b){}
+void MoveDelegate::UpdateLEDs(){}
+
 /** Move Internal Functions, called by plugin.*/
 void MoveDelegate::InternalMoveUpdateAllData()
 {
@@ -102,6 +105,33 @@ void MoveDelegate::InternalMoveControllerTick(float DeltaTime)
 				}
 				else{
 					EventMoveUndocked(i);
+				}
+			}
+
+			//Trigger
+			if (controller->trigger < 127)
+			{
+				controller->trigger_pressed = false;
+			}
+			else{
+				controller->trigger_pressed = true;
+			}
+
+			if (controller->trigger != previous->trigger)
+			{
+				EventMoveTriggerChanged(i, controller->trigger);
+
+				if (controller->trigger_pressed != previous->trigger_pressed)
+				{
+
+					if (controller->trigger_pressed)
+					{
+						EventMoveAnyButtonPressed(i);
+						EventMoveTriggerPressed(i);
+					}
+					else{
+						EventMoveTriggerReleased(i);
+					}
 				}
 			}
 

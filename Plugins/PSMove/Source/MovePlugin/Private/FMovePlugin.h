@@ -19,5 +19,4 @@ public:
 private:
 	DataCollector *collector;
 	void* DLLHandle;
-	bool isStarted = false;
 };

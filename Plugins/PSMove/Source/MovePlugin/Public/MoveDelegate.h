@@ -19,6 +19,9 @@ typedef struct _moveControllerDataUE{
 	int32 controller_index;
 	bool is_docked;
 
+	bool trigger_pressed;
+	uint8 trigger;
+
 	//added values
 	FVector velocity;
 	FVector acceleration;
@@ -79,6 +82,8 @@ public:
 	//** Manual Check */
 	virtual bool MoveIsAvailable();
 	//virtual int32 HydraWhichHand(int32 controller);	//call to determine which hand the controller is held in. Determined and reset on controller docking.
+	virtual void SetLEDs(uint8 r, uint8 g, uint8 b);
+	virtual void UpdateLEDs();
 
 private:
 	//Do not call, this will be called by the plugin, namespace InternalMove

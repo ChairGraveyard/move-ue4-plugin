@@ -21,70 +21,76 @@ IMPLEMENT_MODULE(FMovePlugin, MovePlugin)
 
 
 //Private API - This is where the magic happens
-typedef PSMove* (*dll_psmove_connect)(void);
-typedef PSMove* (*dll_psmove_connect_by_id)(int);
-typedef int (*dll_psmove_poll)(PSMove*);
-typedef unsigned int (*dll_psmove_get_buttons)(PSMove*);
-typedef int (*dll_psmove_init)(int);
-typedef int (*dll_psmove_count_connected)(void);
-typedef void(*dll_psmove_set_leds)(PSMove*, unsigned char, unsigned char, unsigned char);
 
-dll_psmove_connect MoveConnect;
-dll_psmove_connect_by_id MoveConnectByID;
-dll_psmove_poll MovePoll;
-dll_psmove_get_buttons MoveGetButtons;
-dll_psmove_init MoveInit;
-dll_psmove_count_connected MoveCountConnected;
-dll_psmove_set_leds MoveSetLEDs;
+
 //DLL import definition
-/*
-
-
-typedef void (*dll_psmove_disconnect)(PSMove*);
 
 typedef int (*dll_psmove_pair)(PSMove*);
-//typedef PSMoveConnectionType (*dll_psmove_connection_type)(PSMove*);
+
+typedef int (*dll_psmove_init)(int);
+typedef PSMove* (*dll_psmove_connect)(void);
+typedef PSMove* (*dll_psmove_connect_by_id)(int);
+typedef void (*dll_psmove_disconnect)(PSMove*);
+typedef int (*dll_psmove_count_connected)(void);
+typedef enum PSMoveConnectionType (*dll_psmove_connection_type)(PSMove*);
+
+typedef int (*dll_psmove_poll)(PSMove*);
+
+typedef char (*dll_psmove_get_trigger)(PSMove*);
+typedef unsigned int (*dll_psmove_get_buttons)(PSMove*);
+typedef unsigned int (*dll_psmove_get_button_events)(PSMove*, unsigned int*, unsigned int*);
+
+typedef void (*dll_psmove_set_leds)(PSMove*, unsigned char, unsigned char, unsigned char);
+typedef int (*dll_psmove_update_leds)(PSMove*);
+
+typedef void (*dll_psmove_set_rumble)(PSMove*, char);
+
 typedef int (*dll_psmove_has_calibration)(PSMove*);
 
-typedef int (*dll_psmove_update_leds)(PSMove*);
-typedef void (*dll_psmove_set_rumble)(PSMove*,char);*/
-//
-/*
-typedef uint (*dll_psmove_get_button_events)(PSMove*,uint*,uint*);
-typedef char (*dll_psmove_get_trigger)(PSMove*);
+typedef void (*dll_psmove_get_accelerometer)(PSMove*, int*, int*, int*);
+typedef void (*dll_psmove_get_accelerometer_frame)(PSMove*, PSMove_Frame, float*, float*, float*);
+typedef void (*dll_psmove_get_gyroscope)(PSMove*, int*, int*, int*);
+typedef void (*dll_psmove_get_gyroscope_frame)(PSMove*, PSMove_Frame, float*, float*, float*);
+typedef void (*dll_psmove_get_magnetometer)(PSMove*, int*, int*, int*);
+typedef void (*dll_psmove_get_orientation)(PSMove*, float* w, float* x, float* y, float* z);
+
 typedef float (*dll_psmove_get_temperature)(PSMove*);
-//typedef PSMove_Battery_Level (*dll_psmove_get_battery)(PSMove*);
-typedef void (*dll_psmove_get_accelerometer)(PSMove*,int*,int*,int*);
-//typedef void (*dll_psmove_get_accelerometer_frame)(PSMove*,PSMove_Frame,float*,float*,float*);
-typedef void (*dll_psmove_get_gyroscope)(PSMove*,int*,int*,int*);
-//typedef void (*dll_psmove_get_gyroscope_frame)(PSMove*,PSMove_Frame,float*,float*,float*);
-typedef void (*dll_psmove_get_magnetometer)(PSMove*,int*,int*,int*);
-//typedef string (*dll_psmove_get_serial)(PSMove*);
-*/
-/*
+typedef PSMove_Battery_Level (*dll_psmove_get_battery)(PSMove*);
+typedef char* (*dll_psmove_get_serial)(PSMove*);
 
-
-dll_psmove_disconnect MoveDisconnect;
 
 dll_psmove_pair MovePair;
-//dll_psmove_connection_type MoveConnectionType;
+
+dll_psmove_init MoveInit;
+dll_psmove_connect MoveConnect;
+dll_psmove_connect_by_id MoveConnectByID;
+dll_psmove_disconnect MoveDisconnect;
+dll_psmove_count_connected MoveCountConnected;
+dll_psmove_connection_type MoveConnectionType;
+
+dll_psmove_poll MovePoll;
+
+dll_psmove_get_trigger MoveGetTrigger;
+dll_psmove_get_buttons MoveGetButtons;
+dll_psmove_get_button_events MoveGetButtonEvents;
+
 dll_psmove_has_calibration MoveHasCalibration;
+
 dll_psmove_set_leds MoveSetLEDs;
 dll_psmove_update_leds MoveUpdateLEDs;
 dll_psmove_set_rumble MoveSetRumble;
 
-
-dll_psmove_get_button_events MoveGetButtonEvents;
-dll_psmove_get_trigger MoveGetTrigger;
-dll_psmove_get_temperature MoveGetTemperature;
-//dll_psmove_get_battery MoveGetBattery;
 dll_psmove_get_accelerometer MoveGetAccelerometer;
-//dll_psmove_get_accelerometer_frame MoveGetAccelerometerFrame;
+dll_psmove_get_accelerometer_frame MoveGetAccelerometerFrame;
 dll_psmove_get_gyroscope MoveGetGyroscope;
-//dll_psmove_get_gyroscope_frame MoveGetGyroscopeFrame;
+dll_psmove_get_gyroscope_frame MoveGetGyroscopeFrame;
 dll_psmove_get_magnetometer MoveGetMagnetometer;
-//dll_psmove_get_serial MoveGetSerial;
-*/
+dll_psmove_get_orientation MoveGetOrientation;
+
+dll_psmove_get_temperature MoveGetTemperature;
+dll_psmove_get_battery MoveGetBattery;
+dll_psmove_get_serial MoveGetSerial;
+
 class DataCollector
 {
 public:
@@ -115,47 +121,8 @@ public:
 	{
 		delete allDataUE;
 	}
-	/*
-	moveControllerDataUE ConvertData(sixenseControllerData* data)
-	{
-		moveControllerDataUE converted;
 
-		//Convert Sixense Axis to Unreal: UnrealX = - SixenseZ   UnrealY = SixenseX   UnrealZ = SixenseY
-		// TODO: Figure out coordinate space for PS Move
-		converted.position = FVector(-data->pos[2], data->pos[0], data->pos[1]);	//converted
-		converted.rotation = FQuat(data->rot_quat[2], -data->rot_quat[0], -data->rot_quat[1], data->rot_quat[3]);	//converted & rotation values inverted
-		converted.joystick = FVector2D(data->joystick_x, data->joystick_y);
-		converted.trigger = data->trigger;
-		converted.buttons = data->buttons;
-		converted.sequence_number = data->sequence_number;
-		converted.firmware_revision = data->firmware_revision;
-		converted.hardware_revision = data->hardware_revision;
-		converted.packet_type = data->packet_type;
-		converted.magnetic_frequency = data->magnetic_frequency;
-		converted.enabled = (data->enabled != 0);
-		converted.controller_index = data->controller_index;
-		converted.is_docked = (data->is_docked != 0);
-		converted.which_hand = data->which_hand;
-		converted.hemi_tracking_enabled = (data->hemi_tracking_enabled != 0);
-
-		return converted;
-	}
-
-	void ConvertAllData()
-	{
-		allDataUE->enabledCount = 0;
-
-		for (int i = 0; i < 4; i++)
-		{
-			allDataUE->controllers[i] = ConvertData(&allData->controllers[i]);
-			if (allDataUE->controllers[i].enabled){
-				allDataUE->enabledCount++;
-			}
-		}
-	}
-	*/
 	moveAllControllerDataUE* allDataUE;
-	//sixenseAllControllerData* allData;
 	MoveDelegate* moveDelegate;
 };
 
@@ -166,7 +133,6 @@ void FMovePlugin::StartupModule()
 	try {
 		collector = new DataCollector;
 
-	
 		FString DllFilename = FPaths::ConvertRelativePathToFull(FPaths::Combine(*FPaths::GameDir(),
 			TEXT("Plugins"), TEXT("PSMove"), TEXT("Binaries/Win64")),TEXT("libpsmoveapi.dll")); // TODO: Fix this to point to libpsmoveapi
 
@@ -178,51 +144,44 @@ void FMovePlugin::StartupModule()
 			return;
 		}
 
+		MovePair = (dll_psmove_pair)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_pair"));   
+		                
 		MoveInit = (dll_psmove_init)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_init"));
 		MoveConnect = (dll_psmove_connect)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_connect"));
 		MoveConnectByID = (dll_psmove_connect_by_id)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_connect_by_id"));
-		MovePoll = (dll_psmove_poll)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_poll"));
-		MoveGetButtons = (dll_psmove_get_buttons)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_get_buttons"));
-		MoveCountConnected = (dll_psmove_count_connected)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_count_connected"));
-		MoveSetLEDs = (dll_psmove_set_leds)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_set_leds"));
-
-		// TODO: Get DLL functions.
-		/*
-		
-		
-
 		MoveDisconnect = (dll_psmove_disconnect)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_disconnect"));
-		
-		MovePair = (dll_psmove_pair)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_pair"));
-		//MoveConnectionType = (dll_psmove_connection_type)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_connection_type"));
-		MoveHasCalibration = (dll_psmove_has_calibration)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_has_calibration"));
-		
-		MoveSetRumble = (dll_psmove_set_rumble)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_set_rumble"));
-		*/
+		MoveCountConnected = (dll_psmove_count_connected)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_count_connected"));
+		MoveConnectionType = (dll_psmove_connection_type)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_connection_type"));
 
-		/*
-		
-		MoveGetButtonEvents = (dll_psmove_get_button_events)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_get_button_events"));
+		MovePoll = (dll_psmove_poll)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_poll"));		
 
 		MoveGetTrigger = (dll_psmove_get_trigger)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_get_trigger"));
-		MoveGetTemperature = (dll_psmove_get_temperature)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_get_temperature"));
-		//MoveGetBattery = (dll_psmove_get_button_events)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_get_battery"));
-		MoveGetAccelerometer = (dll_psmove_get_accelerometer)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_get_accelerometer"));
+		MoveGetButtons = (dll_psmove_get_buttons)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_get_buttons"));		
+		MoveGetButtonEvents = (dll_psmove_get_button_events)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_get_button_events"));	
 
-		//MoveGetAccelerometerFrame = (dll_psmove_get_accelerometer_frame)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_get_accelerometer_frame"));
+		MoveHasCalibration = (dll_psmove_has_calibration)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_has_calibration"));
+		
+		MoveSetLEDs = (dll_psmove_set_leds)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_set_leds"));
+		MoveUpdateLEDs = (dll_psmove_update_leds)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_update_leds"));
+		MoveSetRumble = (dll_psmove_set_rumble)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_set_rumble"));
+
+		MoveGetAccelerometer = (dll_psmove_get_accelerometer)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_get_accelerometer"));
+		MoveGetAccelerometerFrame = (dll_psmove_get_accelerometer_frame)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_get_accelerometer_frame"));
 		MoveGetGyroscope = (dll_psmove_get_gyroscope)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_get_gyroscope"));
-		//MoveGetGyroscopeFrame = (dll_psmove_get_gyroscope_frame)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_get_gyroscope_frame"));
+		MoveGetGyroscopeFrame = (dll_psmove_get_gyroscope_frame)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_get_gyroscope_frame"));
 		MoveGetMagnetometer = (dll_psmove_get_magnetometer)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_get_magnetometer"));
-		//MoveGetSerial = (dll_psmove_get_serial)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_get_serial"));
-		*/
-		// TODO: Set this up to store the PSMove* correctly after calling MoveConnect.
+		MoveGetOrientation = (dll_psmove_get_orientation)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_get_orientation"));
+
+		MoveGetTemperature = (dll_psmove_get_temperature)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_get_temperature"));
+		MoveGetBattery = (dll_psmove_get_battery)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_get_battery"));
+		MoveGetSerial = (dll_psmove_get_serial)FPlatformProcess::GetDllExport(DLLHandle, TEXT("psmove_get_serial"));
+
 		int init_status = MoveInit(0x030001);
 
 		collector->allDataUE->available = init_status == 1 ? true : false;
 
 		if (collector->allDataUE->available)
 		{
-			isStarted = true;
 			UE_LOG(LogClass, Log, TEXT("Move Available."));
 		}
 		else
@@ -258,6 +217,7 @@ bool MoveGetAllNewestData(moveAllControllerDataUE* allDataUE)
 	if (!allDataUE->available)
 		return false;
 
+
 	for (int i = 0; i < 1; i++)
 	{
 		moveControllerDataUE *controller = &allDataUE->controllers[i];
@@ -265,7 +225,6 @@ bool MoveGetAllNewestData(moveAllControllerDataUE* allDataUE)
 		// Check for PSMove pointer.
 		if (controller->move == NULL)
 		{
-			MoveInit(0x030001);
 			// Attempt to connect.
 			controller->move = MoveConnect();
 		}
@@ -279,14 +238,24 @@ bool MoveGetAllNewestData(moveAllControllerDataUE* allDataUE)
 			continue;
 		}
 
-		MoveSetLEDs(controller->move, 255, 0, 0);
+		//FColor random_color = FColor::MakeRandomColor();
+		//MoveSetLEDs(controller->move, random_color.R, random_color.G, random_color.B);
+		//MoveUpdateLEDs(controller->move);
 
 		MovePoll(controller->move);
 		
 		controller->enabled = true;
+		
+		int ax = 0, ay = 0, az = 0, aw = 0;
+		MoveGetAccelerometer(controller->move, &ax, &ay, &az);
+		controller->acceleration.Set((float)ax, (float)ay, (float)az);			
 
-		//MoveGetAccelerometer(controller->move, &controller->acceleration.X, &controller->acceleration.Y, &controller->acceleration.Z);
+		float x = 0.0f, y = 0.0f, z = 0.0f, w = 0.0f;
+		MoveGetOrientation(controller->move, &w, &x, &y, &z);
+		controller->rotation.X = x, controller->rotation.Y = y, controller->rotation.Z = z, controller->rotation.W = w;
+
 		controller->buttons = MoveGetButtons(controller->move);
+		controller->trigger = MoveGetTrigger(controller->move);// (float)MoveGetTrigger(controller->move) / 255.0f;
 	}
 
 	return true;
@@ -304,12 +273,6 @@ void FMovePlugin::SetDelegate(MoveDelegate* newDelegate)
 
 void FMovePlugin::MoveTick(float DeltaTime)
 {
-	if (!isStarted)
-	{
-		//isStarted = true;
-		StartupModule();
-	}
-
 	//get the freshest data
 	bool success = MoveGetAllNewestData(collector->allDataUE);
 	if (success == false){
