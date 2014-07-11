@@ -19,4 +19,6 @@ public:
 private:
 	DataCollector *collector;
 	void* DLLHandle;
+
+	void SetupPSMoveFunctions();
 };

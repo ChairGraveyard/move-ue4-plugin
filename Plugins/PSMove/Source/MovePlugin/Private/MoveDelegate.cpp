@@ -30,9 +30,6 @@ void MoveDelegate::EventMoveControllerMoved(int32 controller,
 	FVector position, FVector velocity, FVector acceleration,
 	FRotator rotation){};
 
-void MoveDelegate::SetLEDs(uint8 r, uint8 g, uint8 b){}
-void MoveDelegate::UpdateLEDs(){}
-
 /** Move Internal Functions, called by plugin.*/
 void MoveDelegate::InternalMoveUpdateAllData()
 {

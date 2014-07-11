@@ -1,6 +1,11 @@
 #pragma once
 #include "CoreUObject.h"
-#include <psmove.h>
+
+struct _PSMove;
+typedef struct _PSMove PSMove; 
+
+struct _PSMoveTracker;
+typedef struct _PSMoveTracker PSMoveTracker;
 
 /** 
  * Converted Controller Data.
@@ -28,6 +33,8 @@ typedef struct _moveControllerDataUE{
 } moveControllerDataUE;
 
 typedef struct _moveAllControllerDataUE{
+	PSMoveTracker *tracker;
+	int calibration_status;
 	moveControllerDataUE controllers[4];		// current sdk max supported
 	int32 enabledCount;
 	bool available;
@@ -81,9 +88,9 @@ public:
 
 	//** Manual Check */
 	virtual bool MoveIsAvailable();
-	//virtual int32 HydraWhichHand(int32 controller);	//call to determine which hand the controller is held in. Determined and reset on controller docking.
-	virtual void SetLEDs(uint8 r, uint8 g, uint8 b);
-	virtual void UpdateLEDs();
+
+	// TODO: Implement rumble.
+	//virtual void SetRumble(int32 controller, uint8 rumble);
 
 private:
 	//Do not call, this will be called by the plugin, namespace InternalMove
